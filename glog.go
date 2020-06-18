@@ -77,10 +77,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	stdLog "log"
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -1177,4 +1179,64 @@ func Exitln(args ...interface{}) {
 func Exitf(format string, args ...interface{}) {
 	atomic.StoreUint32(&fatalNoStacks, 1)
 	logging.printf(fatalLog, format, args...)
+}
+
+// catch exception for no panic
+func CatchException() {
+	if err := recover(); err != nil {
+		logfile, err2 := os.OpenFile(newDumpFile(), os.O_RDWR|os.O_APPEND|os.O_CREATE, os.ModePerm)
+		if err2 != nil {
+			return
+		}
+
+		defer logfile.Close()
+		logger := log.New(logfile, "", log.Ldate|log.Lmicroseconds|log.Lshortfile)
+		logger.SetFlags(0)
+
+		strLog := fmt.Sprintf(`
+===============================================================================
+TIME: %v
+EXCEPTION: %#v
+===============================================================================		
+%s`,
+			time.Now(),
+			err,
+			string(debug.Stack()))
+
+		logger.Println(strLog)
+		fmt.Println(strLog)
+	}
+}
+
+// generate dumpfile
+func newDumpFile() string {
+	var isFileExist = func(fn string) bool {
+		finfo, err := os.Stat(fn)
+		if err != nil {
+			return false
+		}
+		if finfo.IsDir() {
+			return false
+		}
+		return true
+	}
+
+	now := time.Now()
+	filename := fmt.Sprintf("exceptions.%02d_%02d_%02d", now.Hour(), now.Minute(), now.Second())
+	dir := fmt.Sprintf("%s/exceptions/%04d-%02d-%02d/", strings.TrimRight(*logDir, "/"), now.Year(), int(now.Month()), now.Day())
+	os.MkdirAll(dir, os.ModePerm)
+	fn := fmt.Sprintf("%s%s.log", dir, filename)
+	if !isFileExist(fn) {
+		return fn
+	}
+
+	n := 1
+	for {
+		fn = fmt.Sprintf("%s%s_%d.log", dir, filename, n)
+		if !isFileExist(fn) {
+			break
+		}
+		n += 1
+	}
+	return fn
 }

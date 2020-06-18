@@ -413,3 +413,8 @@ func BenchmarkHeader(b *testing.B) {
 		logging.putBuffer(buf)
 	}
 }
+
+func BenchmarkCatchException(b *testing.B) {
+	defer CatchException()
+	panic("no error")
+}
