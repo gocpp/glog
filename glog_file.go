@@ -39,6 +39,7 @@ var logDirs []string
 // If non-empty, overrides the choice of directory in which to write logs.
 // See createLogDirs for the full list of possible destinations.
 var logDir = flag.String("log_dir", "", "If non-empty, write log files in this directory")
+var logLogo = flag.String("log_logo", "nil", "If non-empty, log filename is especial with logo")
 
 func createLogDirs() {
 	if *logDir != "" {
@@ -81,10 +82,11 @@ func shortHostname(hostname string) string {
 // logName returns a new log file name containing tag, with start time t, and
 // the name for the symlink for tag.
 func logName(tag string, t time.Time) (name, link string) {
-	name = fmt.Sprintf("%s.%s.%s.log.%s.%04d%02d%02d-%02d%02d%02d.%d",
+	name = fmt.Sprintf("%s.%s.%s.%s.log.%s.%04d%02d%02d-%02d%02d%02d.%d",
 		program,
 		host,
 		userName,
+		*logLogo,
 		tag,
 		t.Year(),
 		t.Month(),
@@ -93,7 +95,7 @@ func logName(tag string, t time.Time) (name, link string) {
 		t.Minute(),
 		t.Second(),
 		pid)
-	return name, program + "." + tag
+	return name, program + "." + *logLogo + "." + tag
 }
 
 var onceLogDirs sync.Once

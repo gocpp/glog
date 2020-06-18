@@ -49,6 +49,8 @@
 //	-log_dir=""
 //		Log files will be written to this directory instead of the
 //		default temporary directory.
+//	-log_logo=""
+//		Log files will be written to the file with especial logo.
 //
 //	Other flags provide aids to debugging.
 //
