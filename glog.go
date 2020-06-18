@@ -713,7 +713,7 @@ func (l *loggingT) output(s severity, buf *buffer, file string, line int, alsoTo
 		// If we got here via Exit rather than Fatal, print no stacks.
 		if atomic.LoadUint32(&fatalNoStacks) > 0 {
 			l.mu.Unlock()
-			timeoutFlush(10 * time.Second)
+			timeoutFlush(flushExitInterval)
 			os.Exit(1)
 		}
 		// Dump all goroutine stacks before exiting.
@@ -732,7 +732,7 @@ func (l *loggingT) output(s severity, buf *buffer, file string, line int, alsoTo
 			}
 		}
 		l.mu.Unlock()
-		timeoutFlush(10 * time.Second)
+		timeoutFlush(flushExitInterval)
 		os.Exit(255) // C++ uses -1, which is silly because it's anded with 255 anyway.
 	}
 	l.putBuffer(buf)
@@ -879,7 +879,10 @@ func (l *loggingT) createFiles(sev severity) error {
 	return nil
 }
 
-const flushInterval = 30 * time.Second
+const (
+	flushInterval     = 5 * time.Second
+	flushExitInterval = 3 * time.Second
+)
 
 // flushDaemon periodically flushes the log file buffers.
 func (l *loggingT) flushDaemon() {
