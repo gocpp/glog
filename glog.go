@@ -1226,9 +1226,10 @@ func newDumpFile() string {
 		return true
 	}
 
+	binDir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
 	now := time.Now()
 	filename := fmt.Sprintf("exceptions.%02d_%02d_%02d", now.Hour(), now.Minute(), now.Second())
-	dir := fmt.Sprintf("%s/exceptions/%04d-%02d-%02d/", strings.TrimRight(*logDir, "/"), now.Year(), int(now.Month()), now.Day())
+	dir := fmt.Sprintf("%s/exceptions/%04d-%02d-%02d/", strings.TrimRight(binDir, "/"), now.Year(), int(now.Month()), now.Day())
 	os.MkdirAll(dir, os.ModePerm)
 	fn := fmt.Sprintf("%s%s.log", dir, filename)
 	if !isFileExist(fn) {
